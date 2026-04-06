@@ -56,9 +56,8 @@ import com.example.mypracticeapplication.model.UserDetails
 import com.example.mypracticeapplication.utils.DataStoreManager
 import kotlinx.coroutines.launch
 
-//@PreviewParameter
 @Composable
-fun LoginScreen(onLoginClicked:(String, String)-> Unit, dataStoreManager: DataStoreManager){
+fun LoginScreen(onLoginClicked: (String, String) -> Unit, dataStoreManager: DataStoreManager) {
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -70,19 +69,18 @@ fun LoginScreen(onLoginClicked:(String, String)-> Unit, dataStoreManager: DataSt
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
 
-    fun validateAndLogin(){
+    fun validateAndLogin() {
         var valid = true
 
         if (email.isBlank()) {
             emailError = "Email is required"
             valid = false
         }
-        if(password.isBlank()){
+        if (password.isBlank()) {
             passwordError = "Password is required"
             valid = false
         }
-        //Save data to datastore
-        if(valid){
+        if (valid) {
             isLoading = true
             scope.launch {
                 dataStoreManager.saveToDataStore(
@@ -107,7 +105,7 @@ fun LoginScreen(onLoginClicked:(String, String)-> Unit, dataStoreManager: DataSt
                     )
                 )
             )
-    ){
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -115,7 +113,6 @@ fun LoginScreen(onLoginClicked:(String, String)-> Unit, dataStoreManager: DataSt
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            //Title text
             Text(
                 text = "Login or sign up",
                 color = Color.White,
@@ -123,20 +120,14 @@ fun LoginScreen(onLoginClicked:(String, String)-> Unit, dataStoreManager: DataSt
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
-            Spacer(
-                Modifier.height(8.dp)
-            )
-            //Subtitle text
+            Spacer(Modifier.height(8.dp))
             Text(
                 text = "Login in your existing account or sign up to create a new account",
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center
             )
-            Spacer(
-                Modifier.height(8.dp)
-            )
-            //Login inputs card
+            Spacer(Modifier.height(8.dp))
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -151,19 +142,15 @@ fun LoginScreen(onLoginClicked:(String, String)-> Unit, dataStoreManager: DataSt
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    //EMAIL input field
                     OutlinedTextField(
                         value = email,
                         onValueChange = {
                             email = it
-                            emailError=null
+                            emailError = null
                         },
-                        placeholder = {
-                            Text(text = "example@email.com")
-                        },
-                        //error message text
+                        placeholder = { Text(text = "example@email.com") },
                         supportingText = {
-                            AnimatedVisibility(visible = emailError!=null) {
+                            AnimatedVisibility(visible = emailError != null) {
                                 Text(
                                     text = emailError ?: "",
                                     color = MaterialTheme.colorScheme.error,
@@ -171,10 +158,8 @@ fun LoginScreen(onLoginClicked:(String, String)-> Unit, dataStoreManager: DataSt
                                 )
                             }
                         },
-                        isError = emailError!=null,
-                        label = {
-                            Text(text = "Email")
-                        },
+                        isError = emailError != null,
+                        label = { Text(text = "Email") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Mail,
@@ -186,27 +171,21 @@ fun LoginScreen(onLoginClicked:(String, String)-> Unit, dataStoreManager: DataSt
                             imeAction = ImeAction.Next
                         ),
                         keyboardActions = KeyboardActions(
-                            onNext = {
-                                focusManager.moveFocus(FocusDirection.Down)
-                            }
+                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 16.dp)
                     )
-                    //PASSWORD input field
                     OutlinedTextField(
                         value = password,
                         onValueChange = {
                             password = it
-                            passwordError=null
+                            passwordError = null
                         },
-                        placeholder = {
-                            Text(text = "*******")
-                        },
-                        //error message text
+                        placeholder = { Text(text = "*******") },
                         supportingText = {
-                            AnimatedVisibility(visible = passwordError!=null) {
+                            AnimatedVisibility(visible = passwordError != null) {
                                 Text(
                                     text = passwordError ?: "",
                                     color = MaterialTheme.colorScheme.error,
@@ -214,10 +193,8 @@ fun LoginScreen(onLoginClicked:(String, String)-> Unit, dataStoreManager: DataSt
                                 )
                             }
                         },
-                        isError = passwordError!=null,
-                        label = {
-                            Text(text = "Password")
-                        },
+                        isError = passwordError != null,
+                        label = { Text(text = "Password") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Lock,
@@ -235,34 +212,31 @@ fun LoginScreen(onLoginClicked:(String, String)-> Unit, dataStoreManager: DataSt
                             }
                         },
                         keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Email,
-                            imeAction = ImeAction.Next
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
                         ),
                         keyboardActions = KeyboardActions(
-                            onNext = {
+                            onDone = {
                                 focusManager.clearFocus()
                                 validateAndLogin()
                             }
                         ),
-                        visualTransformation = if(isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 16.dp)
                     )
                     Button(
-                        onClick = {
-                            //todo Login
-                            validateAndLogin()
-                        },
+                        onClick = { validateAndLogin() },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = !isLoading
                     ) {
-                        if(isLoading){
+                        if (isLoading) {
                             CircularProgressIndicator(
                                 color = Color.White,
                                 modifier = Modifier.size(16.dp)
                             )
-                        }else{
+                        } else {
                             Text(
                                 text = "Login",
                                 fontSize = 16.sp,
@@ -272,17 +246,13 @@ fun LoginScreen(onLoginClicked:(String, String)-> Unit, dataStoreManager: DataSt
                     }
                 }
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "Don't have an account?",
                     fontSize = 14.sp,
                     color = Color.White
                 )
-                TextButton(onClick = {
-                    //todo Sign Up
-                }) {
+                TextButton(onClick = { }) {
                     Text(
                         text = "Sign Up",
                         fontSize = 14.sp,

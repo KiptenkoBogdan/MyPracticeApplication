@@ -25,3 +25,10 @@ replay_pid*
 
 # Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
 .kotlin/
+
+# Optional: Context and instructions (if you don't want to share them with the team)
+CLAUDE.md
+CLAUDE.local.md
+
+# General Claude-related artifacts
+.claude/

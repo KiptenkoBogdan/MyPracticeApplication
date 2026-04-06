@@ -1,6 +1,5 @@
 package com.example.mypracticeapplication
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -9,12 +8,15 @@ import androidx.compose.material.icons.outlined.Bookmark
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,37 +24,33 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.mypracticeapplication.utils.DataStoreManager
 import com.example.mypracticeapplication.view.BookmarkScreen
+import com.example.mypracticeapplication.view.HomeScreen
 import com.example.mypracticeapplication.view.LoginScreen
 import com.example.mypracticeapplication.view.ProfileScreen
 import com.example.mypracticeapplication.view.Route
-
+import com.example.mypracticeapplication.viewmodel.BookmarkViewModel
+import com.example.mypracticeapplication.viewmodel.HomeViewModel
+import com.example.mypracticeapplication.viewmodel.ProfileViewModel
 
 @Composable
 fun BottomNavigator(dataStoreManager: DataStoreManager) {
+    val context = LocalContext.current.applicationContext
     val bottomNavigationItems = remember {
         listOf(
-            _root_ide_package_.com.example.kotlinpracticeapp.BottomNavItem(
-                icon = Icons.Outlined.Home,
-                text = "Home"
-            ),
-            _root_ide_package_.com.example.kotlinpracticeapp.BottomNavItem(
-                icon = Icons.Outlined.Bookmark,
-                text = "Bookmark"
-            ),
-            _root_ide_package_.com.example.kotlinpracticeapp.BottomNavItem(
-                icon = Icons.Outlined.AccountCircle,
-                text = "Profile"
-            )
+            BottomNavItem(icon = Icons.Outlined.Home, text = "Home"),
+            BottomNavItem(icon = Icons.Outlined.Bookmark, text = "Saved"),
+            BottomNavItem(icon = Icons.Outlined.AccountCircle, text = "Profile")
         )
     }
     val navController = rememberNavController()
     val backStackState = navController.currentBackStackEntryAsState().value
-    var selectedItem by rememberSaveable{
-        mutableStateOf(0)
-    }
-    selectedItem = when(backStackState?.destination?.route){
+    val isLoggedIn by dataStoreManager.isLoggedIn().collectAsState(initial = false)
+
+    var selectedItem by rememberSaveable { mutableStateOf(0) }
+    selectedItem = when (backStackState?.destination?.route) {
         Route.HomeScreen.route -> 0
         Route.BookmarkScreen.route -> 1
+        Route.ProfileScreen.route -> 2
         Route.LoginScreen.route -> 2
         else -> 0
     }
@@ -60,12 +58,13 @@ fun BottomNavigator(dataStoreManager: DataStoreManager) {
     val isBottomBarVisible = remember(key1 = backStackState) {
         backStackState?.destination?.route == Route.HomeScreen.route ||
                 backStackState?.destination?.route == Route.BookmarkScreen.route ||
+                backStackState?.destination?.route == Route.ProfileScreen.route ||
                 backStackState?.destination?.route == Route.LoginScreen.route
     }
 
     Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
         if (isBottomBarVisible) {
-            _root_ide_package_.com.example.kotlinpracticeapp.BottomNavBar(
+            BottomNavBar(
                 items = bottomNavigationItems,
                 selectedItem = selectedItem,
                 onItemClick = { index ->
@@ -74,16 +73,13 @@ fun BottomNavigator(dataStoreManager: DataStoreManager) {
                             navController = navController,
                             route = Route.HomeScreen.route
                         )
-
                         1 -> navigateToTab(
                             navController = navController,
                             route = Route.BookmarkScreen.route
                         )
-
                         2 -> navigateToTab(
                             navController = navController,
-
-                            route = Route.LoginScreen.route
+                            route = if (isLoggedIn) Route.ProfileScreen.route else Route.LoginScreen.route
                         )
                     }
                 }
@@ -97,38 +93,55 @@ fun BottomNavigator(dataStoreManager: DataStoreManager) {
             modifier = Modifier.padding(bottom = bottomPadding)
         ) {
             composable(route = Route.HomeScreen.route) {
-                HomeScreen()
+                val homeViewModel: HomeViewModel = viewModel(
+                    factory = HomeViewModel.Factory(dataStoreManager, context)
+                )
+                HomeScreen(viewModel = homeViewModel)
             }
             composable(route = Route.BookmarkScreen.route) {
-                BookmarkScreen()
+                val bookmarkViewModel: BookmarkViewModel = viewModel(
+                    factory = BookmarkViewModel.Factory(dataStoreManager)
+                )
+                BookmarkScreen(
+                    onNavigateToLogin = {
+                        navController.navigate(Route.LoginScreen.route) {
+                            popUpTo(Route.BookmarkScreen.route) { inclusive = true }
+                        }
+                    },
+                    viewModel = bookmarkViewModel
+                )
             }
             composable(route = Route.LoginScreen.route) {
-                LoginScreen({ _, _ ->
-                    navController.navigate(
-                        route = Route.HomeScreen.route
-                    )
-                }, dataStoreManager)
+                LoginScreen(
+                    onLoginClicked = { _, _ ->
+                        navController.navigate(Route.HomeScreen.route) {
+                            popUpTo(Route.LoginScreen.route) { inclusive = true }
+                        }
+                    },
+                    dataStoreManager = dataStoreManager
+                )
             }
             composable(route = Route.ProfileScreen.route) {
-                ProfileScreen({navController.navigate(route = Route.LoginScreen.route)},dataStoreManager)
+                val profileViewModel: ProfileViewModel = viewModel(
+                    factory = ProfileViewModel.Factory(dataStoreManager)
+                )
+                ProfileScreen(
+                    onLogout = {
+                        navController.navigate(Route.LoginScreen.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
+                    viewModel = profileViewModel
+                )
             }
         }
     }
 }
 
-@Composable
-fun OnBackClickStateSaver(navController: NavController) {
-    BackHandler(true) {
-        navigateToTab(
-            navController = navController,
-            route = Route.HomeScreen.route
-        )
-    }
-}
 private fun navigateToTab(navController: NavController, route: String) {
     navController.navigate(route) {
-        navController.graph.startDestinationRoute?.let { screen_route ->
-            popUpTo(screen_route) {
+        navController.graph.startDestinationRoute?.let { screenRoute ->
+            popUpTo(screenRoute) {
                 saveState = true
             }
         }
