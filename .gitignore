@@ -1,5 +1,11 @@
-#Graddle files
+#Gradle files
 .gradle/
+
+#Project settings
+.idea/
+
+#Compiled outputs
+build/
 
 # Compiled class file
 *.class
