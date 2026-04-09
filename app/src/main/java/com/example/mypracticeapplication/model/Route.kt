@@ -1,4 +1,4 @@
-package com.example.mypracticeapplication.view
+package com.example.mypracticeapplication.model
 
 import androidx.navigation.NamedNavArgument
 

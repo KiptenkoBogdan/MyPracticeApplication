@@ -27,7 +27,7 @@ import com.example.mypracticeapplication.view.BookmarkScreen
 import com.example.mypracticeapplication.view.HomeScreen
 import com.example.mypracticeapplication.view.LoginScreen
 import com.example.mypracticeapplication.view.ProfileScreen
-import com.example.mypracticeapplication.view.Route
+import com.example.mypracticeapplication.model.Route
 import com.example.mypracticeapplication.viewmodel.BookmarkViewModel
 import com.example.mypracticeapplication.viewmodel.HomeViewModel
 import com.example.mypracticeapplication.viewmodel.ProfileViewModel
@@ -75,7 +75,7 @@ fun BottomNavigator(dataStoreManager: DataStoreManager) {
                         )
                         1 -> navigateToTab(
                             navController = navController,
-                            route = Route.BookmarkScreen.route
+                            route = if (isLoggedIn) Route.BookmarkScreen.route else Route.LoginScreen.route
                         )
                         2 -> navigateToTab(
                             navController = navController,
@@ -103,11 +103,6 @@ fun BottomNavigator(dataStoreManager: DataStoreManager) {
                     factory = BookmarkViewModel.Factory(dataStoreManager)
                 )
                 BookmarkScreen(
-                    onNavigateToLogin = {
-                        navController.navigate(Route.LoginScreen.route) {
-                            popUpTo(Route.BookmarkScreen.route) { inclusive = true }
-                        }
-                    },
                     viewModel = bookmarkViewModel
                 )
             }

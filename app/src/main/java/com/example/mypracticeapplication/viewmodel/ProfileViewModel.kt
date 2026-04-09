@@ -13,7 +13,7 @@ data class ProfileUiState(
     val email: String = "",
     val displayName: String = "",
     val profilePictureUri: String = "",
-    val isLoggedIn: Boolean = false
+    //val isLoggedIn: Boolean = false
 )
 
 class ProfileViewModel(
@@ -34,7 +34,7 @@ class ProfileViewModel(
                     email = user.email,
                     displayName = user.displayName,
                     profilePictureUri = user.profilePictureUri,
-                    isLoggedIn = user.email.isNotBlank()
+                    //isLoggedIn = user.email.isNotBlank()
                 )
             }
         }

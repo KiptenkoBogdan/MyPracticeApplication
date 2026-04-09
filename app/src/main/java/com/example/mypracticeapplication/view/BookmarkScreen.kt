@@ -43,17 +43,17 @@ import androidx.core.net.toUri
 
 @Composable
 fun BookmarkScreen(
-    onNavigateToLogin: () -> Unit,
+    //onNavigateToLogin: () -> Unit,
     viewModel: BookmarkViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    if (!uiState.isLoggedIn) {
-        LaunchedEffect(Unit) {
-            onNavigateToLogin()
-        }
-        return
-    }
+//    if (!uiState.isLoggedIn) {
+//        LaunchedEffect(Unit) {
+//            onNavigateToLogin()
+//        }
+//        return
+//    }
 
     Column(
         modifier = Modifier
@@ -97,7 +97,7 @@ fun BookmarkScreen(
             }
         } else {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
+                columns = GridCells.Fixed(3),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 8.dp),

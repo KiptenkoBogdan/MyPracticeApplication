@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 data class BookmarkUiState(
-    val isLoggedIn: Boolean = false,
+    //val isLoggedIn: Boolean = false,
     val favouriteVideos: List<VideoItem> = emptyList()
 )
 
@@ -43,7 +43,7 @@ class BookmarkViewModel(
                 }
             ) { email, favourites ->
                 BookmarkUiState(
-                    isLoggedIn = email.isNotBlank(),
+                    //isLoggedIn = email.isNotBlank(),
                     favouriteVideos = favourites.map { filename ->
                         VideoItem(
                             filename = filename,
