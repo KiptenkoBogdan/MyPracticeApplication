@@ -44,7 +44,8 @@ import androidx.core.net.toUri
 @Composable
 fun BookmarkScreen(
     //onNavigateToLogin: () -> Unit,
-    viewModel: BookmarkViewModel
+    viewModel: BookmarkViewModel,
+    onVideoClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -105,7 +106,10 @@ fun BookmarkScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(uiState.favouriteVideos) { video ->
-                    VideoThumbnailCard(video = video)
+                    VideoThumbnailCard(
+                        video = video,
+                        onClick = { onVideoClick(video.filename) }
+                    )
                 }
             }
         }
@@ -113,7 +117,10 @@ fun BookmarkScreen(
 }
 
 @Composable
-private fun VideoThumbnailCard(video: VideoItem) {
+private fun VideoThumbnailCard(
+    video: VideoItem,
+    onClick: () -> Unit
+) {
     val context = LocalContext.current
 
     Box(
@@ -122,6 +129,7 @@ private fun VideoThumbnailCard(video: VideoItem) {
             .aspectRatio(9f / 16f)
             .clip(RoundedCornerShape(8.dp))
             .background(Color(0xFF2A2A4A))
+            .clickable(onClick = onClick)
     ) {
         AsyncImage(
             model = ImageRequest.Builder(context)

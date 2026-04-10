@@ -22,15 +22,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import android.net.Uri
 import com.example.mypracticeapplication.utils.DataStoreManager
 import com.example.mypracticeapplication.view.BookmarkScreen
 import com.example.mypracticeapplication.view.HomeScreen
 import com.example.mypracticeapplication.view.LoginScreen
 import com.example.mypracticeapplication.view.ProfileScreen
+import com.example.mypracticeapplication.view.SavedVideoPlayerScreen
 import com.example.mypracticeapplication.model.Route
 import com.example.mypracticeapplication.viewmodel.BookmarkViewModel
 import com.example.mypracticeapplication.viewmodel.HomeViewModel
 import com.example.mypracticeapplication.viewmodel.ProfileViewModel
+import com.example.mypracticeapplication.viewmodel.SavedVideoPlayerViewModel
 
 @Composable
 fun BottomNavigator(dataStoreManager: DataStoreManager) {
@@ -103,7 +106,29 @@ fun BottomNavigator(dataStoreManager: DataStoreManager) {
                     factory = BookmarkViewModel.Factory(dataStoreManager)
                 )
                 BookmarkScreen(
-                    viewModel = bookmarkViewModel
+                    viewModel = bookmarkViewModel,
+                    onVideoClick = { filename ->
+                        navController.navigate(Route.SavedVideoPlayerScreen.createRoute(filename))
+                    }
+                )
+            }
+            composable(
+                route = Route.SavedVideoPlayerScreen.route,
+                arguments = Route.SavedVideoPlayerScreen.arguments
+            ) { backStackEntry ->
+                val rawFilename = backStackEntry.arguments?.getString("filename")
+                val filename = rawFilename?.let { Uri.decode(it) }
+                if (filename == null) {
+                    navController.popBackStack()
+                    return@composable
+                }
+                val savedVideoPlayerViewModel: SavedVideoPlayerViewModel = viewModel(
+                    factory = SavedVideoPlayerViewModel.Factory(dataStoreManager)
+                )
+                SavedVideoPlayerScreen(
+                    startingFilename = filename,
+                    viewModel = savedVideoPlayerViewModel,
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(route = Route.LoginScreen.route) {
