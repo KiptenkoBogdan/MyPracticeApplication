@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,11 +56,14 @@ fun HomeScreen(
 
     VerticalPager(
         state = pagerState,
-        modifier = Modifier.fillMaxSize(),
-        beyondViewportPageCount = 1
+        modifier = Modifier.fillMaxSize()
     ) { page ->
         val video = uiState.videos[page]
         val isCurrentPage = page == pagerState.currentPage
+
+        val onLikeClick = remember(video.filename) { { viewModel.toggleLike(video.filename) } }
+        val onFavouriteClick = remember(video.filename) { { viewModel.toggleFavourite(video.filename) } }
+        val onShareClick = remember(video.filename) { { viewModel.shareVideo(video.filename) } }
 
         Box(
             modifier = Modifier
@@ -76,9 +80,9 @@ fun HomeScreen(
                 likeCount = video.likeCount,
                 isLiked = video.isLikedByUser,
                 isFavourite = video.isFavourite,
-                onLikeClick = { viewModel.toggleLike(video.filename) },
-                onFavouriteClick = { viewModel.toggleFavourite(video.filename) },
-                onShareClick = { viewModel.shareVideo(video.filename) }
+                onLikeClick = onLikeClick,
+                onFavouriteClick = onFavouriteClick,
+                onShareClick = onShareClick
             )
         }
     }

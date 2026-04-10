@@ -16,6 +16,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -32,13 +33,21 @@ fun VideoPlayerComposable(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            val uri = "asset:///videos/$filename".toUri()
-            setMediaItem(MediaItem.fromUri(uri))
-            repeatMode = Player.REPEAT_MODE_ONE
-            prepare()
-        }
+    val exoPlayer = remember(filename) {
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(2_000, 5_000, 500, 1_000)
+            .setTargetBufferBytes(2 * 1024 * 1024)
+            .setPrioritizeTimeOverSizeThresholds(false)
+            .build()
+        ExoPlayer.Builder(context)
+            .setLoadControl(loadControl)
+            .build()
+            .apply {
+                val uri = "asset:///videos/$filename".toUri()
+                setMediaItem(MediaItem.fromUri(uri))
+                repeatMode = Player.REPEAT_MODE_ONE
+                prepare()
+            }
     }
 
     LaunchedEffect(isPlaying) {
@@ -49,7 +58,7 @@ fun VideoPlayerComposable(
         }
     }
 
-    DisposableEffect(lifecycleOwner) {
+    DisposableEffect(lifecycleOwner, exoPlayer) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> exoPlayer.pause()
@@ -76,6 +85,7 @@ fun VideoPlayerComposable(
                 )
             }
         },
+        update = { view -> view.player = exoPlayer },
         modifier = modifier.fillMaxSize()
     )
 }

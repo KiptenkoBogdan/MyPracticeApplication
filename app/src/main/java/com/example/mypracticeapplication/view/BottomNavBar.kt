@@ -1,4 +1,4 @@
-package com.example.mypracticeapplication
+package com.example.mypracticeapplication.view
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth

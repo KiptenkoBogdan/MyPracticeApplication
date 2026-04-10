@@ -30,6 +30,8 @@ import com.example.mypracticeapplication.view.LoginScreen
 import com.example.mypracticeapplication.view.ProfileScreen
 import com.example.mypracticeapplication.view.SavedVideoPlayerScreen
 import com.example.mypracticeapplication.model.Route
+import com.example.mypracticeapplication.view.BottomNavBar
+import com.example.mypracticeapplication.view.BottomNavItem
 import com.example.mypracticeapplication.viewmodel.BookmarkViewModel
 import com.example.mypracticeapplication.viewmodel.HomeViewModel
 import com.example.mypracticeapplication.viewmodel.ProfileViewModel
@@ -76,10 +78,12 @@ fun BottomNavigator(dataStoreManager: DataStoreManager) {
                             navController = navController,
                             route = Route.HomeScreen.route
                         )
+
                         1 -> navigateToTab(
                             navController = navController,
                             route = if (isLoggedIn) Route.BookmarkScreen.route else Route.LoginScreen.route
                         )
+
                         2 -> navigateToTab(
                             navController = navController,
                             route = if (isLoggedIn) Route.ProfileScreen.route else Route.LoginScreen.route

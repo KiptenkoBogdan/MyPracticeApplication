@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -56,13 +57,14 @@ class HomeViewModel(
         }
     }
 
-    private fun observeUserState() {
-        viewModelScope.launch {
-            dataStoreManager.getLoggedInEmail().collect { email ->
-                _uiState.update { it.copy(isLoggedIn = email.isNotBlank(), currentEmail = email) }
-            }
-        }
+    private data class VideoDerivedState(
+        val email: String,
+        val likeCounts: Map<String, Int>,
+        val userLikes: Set<String>,
+        val favourites: Set<String>
+    )
 
+    private fun observeUserState() {
         viewModelScope.launch {
             val emailFlow = dataStoreManager.getLoggedInEmail()
 
@@ -75,16 +77,18 @@ class HomeViewModel(
                 emailFlow.flatMapLatest { email ->
                     if (email.isNotBlank()) dataStoreManager.getFavourites(email) else flowOf(emptyList())
                 }
-            ) { _, likeCounts, userLikes, favourites ->
-                Triple(likeCounts, userLikes, favourites.toSet())
-            }.collect { (likeCounts, userLikes, favourites) ->
+            ) { email, likeCounts, userLikes, favourites ->
+                VideoDerivedState(email, likeCounts, userLikes, favourites.toSet())
+            }.distinctUntilChanged().collect { derived ->
                 _uiState.update { state ->
                     state.copy(
+                        isLoggedIn = derived.email.isNotBlank(),
+                        currentEmail = derived.email,
                         videos = state.videos.map { video ->
                             video.copy(
-                                likeCount = likeCounts[video.filename] ?: 0,
-                                isLikedByUser = video.filename in userLikes,
-                                isFavourite = video.filename in favourites
+                                likeCount = derived.likeCounts[video.filename] ?: 0,
+                                isLikedByUser = video.filename in derived.userLikes,
+                                isFavourite = video.filename in derived.favourites
                             )
                         }
                     )

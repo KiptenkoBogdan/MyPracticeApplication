@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.mypracticeapplication.model.UserDetails
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
@@ -45,15 +46,15 @@ class DataStoreManager(val context: Context) {
             displayName = it[DISPLAY_NAME] ?: "",
             profilePictureUri = it[PROFILE_PICTURE_URI] ?: ""
         )
-    }
+    }.distinctUntilChanged()
 
-    fun isLoggedIn(): Flow<Boolean> = context.preferenceDataStore.data.map {
-        (it[EMAIL] ?: "").isNotBlank()
-    }
+    fun isLoggedIn(): Flow<Boolean> = context.preferenceDataStore.data
+        .map { (it[EMAIL] ?: "").isNotBlank() }
+        .distinctUntilChanged()
 
-    fun getLoggedInEmail(): Flow<String> = context.preferenceDataStore.data.map {
-        it[EMAIL] ?: ""
-    }
+    fun getLoggedInEmail(): Flow<String> = context.preferenceDataStore.data
+        .map { it[EMAIL] ?: "" }
+        .distinctUntilChanged()
 
     suspend fun clearDataStore() = context.preferenceDataStore.edit {
         it.remove(EMAIL)
@@ -75,14 +76,16 @@ class DataStoreManager(val context: Context) {
     // --- Favourites (per-user) ---
 
     fun getFavourites(email: String): Flow<List<String>> =
-        context.preferenceDataStore.data.map { prefs ->
-            val json = prefs[favouritesKey(email)] ?: "[]"
-            try {
-                Json.decodeFromString<List<String>>(json)
-            } catch (e: Exception) {
-                emptyList()
+        context.preferenceDataStore.data
+            .map { it[favouritesKey(email)] ?: "[]" }
+            .distinctUntilChanged()
+            .map { json ->
+                try {
+                    Json.decodeFromString<List<String>>(json)
+                } catch (e: Exception) {
+                    emptyList()
+                }
             }
-        }
 
     suspend fun toggleFavourite(email: String, filename: String) {
         context.preferenceDataStore.edit { prefs ->
@@ -100,14 +103,16 @@ class DataStoreManager(val context: Context) {
     // --- Like counts (global) ---
 
     fun getLikeCounts(): Flow<Map<String, Int>> =
-        context.preferenceDataStore.data.map { prefs ->
-            val json = prefs[LIKE_COUNTS] ?: "{}"
-            try {
-                Json.decodeFromString<Map<String, Int>>(json)
-            } catch (e: Exception) {
-                emptyMap()
+        context.preferenceDataStore.data
+            .map { it[LIKE_COUNTS] ?: "{}" }
+            .distinctUntilChanged()
+            .map { json ->
+                try {
+                    Json.decodeFromString<Map<String, Int>>(json)
+                } catch (e: Exception) {
+                    emptyMap()
+                }
             }
-        }
 
     suspend fun initLikeCounts(videos: List<String>) {
         context.preferenceDataStore.edit { prefs ->
@@ -129,14 +134,16 @@ class DataStoreManager(val context: Context) {
     // --- User likes (per-user) ---
 
     fun getUserLikes(email: String): Flow<Set<String>> =
-        context.preferenceDataStore.data.map { prefs ->
-            val json = prefs[userLikesKey(email)] ?: "[]"
-            try {
-                Json.decodeFromString<List<String>>(json).toSet()
-            } catch (e: Exception) {
-                emptySet()
+        context.preferenceDataStore.data
+            .map { it[userLikesKey(email)] ?: "[]" }
+            .distinctUntilChanged()
+            .map { json ->
+                try {
+                    Json.decodeFromString<List<String>>(json).toSet()
+                } catch (e: Exception) {
+                    emptySet()
+                }
             }
-        }
 
     suspend fun toggleLike(email: String, filename: String) {
         context.preferenceDataStore.edit { prefs ->

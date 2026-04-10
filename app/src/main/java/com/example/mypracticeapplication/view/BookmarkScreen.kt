@@ -1,6 +1,5 @@
 package com.example.mypracticeapplication.view
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,10 +16,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,25 +33,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.video.VideoFrameDecoder
 import com.example.mypracticeapplication.model.VideoItem
 import com.example.mypracticeapplication.viewmodel.BookmarkViewModel
 import androidx.core.net.toUri
 
 @Composable
 fun BookmarkScreen(
-    //onNavigateToLogin: () -> Unit,
     viewModel: BookmarkViewModel,
     onVideoClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
-//    if (!uiState.isLoggedIn) {
-//        LaunchedEffect(Unit) {
-//            onNavigateToLogin()
-//        }
-//        return
-//    }
 
     Column(
         modifier = Modifier
@@ -105,7 +93,10 @@ fun BookmarkScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(uiState.favouriteVideos) { video ->
+                items(
+                    items = uiState.favouriteVideos,
+                    key = { it.filename }
+                ) { video ->
                     VideoThumbnailCard(
                         video = video,
                         onClick = { onVideoClick(video.filename) }
@@ -134,7 +125,6 @@ private fun VideoThumbnailCard(
         AsyncImage(
             model = ImageRequest.Builder(context)
                 .data("file:///android_asset/videos/${video.filename}".toUri())
-                .decoderFactory(VideoFrameDecoder.Factory())
                 .build(),
             contentDescription = video.creatorName,
             contentScale = ContentScale.Crop,
