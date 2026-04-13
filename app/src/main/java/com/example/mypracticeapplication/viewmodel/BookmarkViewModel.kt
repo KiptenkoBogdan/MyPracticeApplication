@@ -3,8 +3,9 @@ package com.example.mypracticeapplication.viewmodel
 import com.example.mypracticeapplication.model.VideoItem
 import com.example.mypracticeapplication.utils.DataStoreManager
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +22,8 @@ data class BookmarkUiState(
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class BookmarkViewModel(
+@HiltViewModel
+class BookmarkViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager
 ) : ViewModel() {
 
@@ -65,15 +67,6 @@ class BookmarkViewModel(
             if (email.isNotBlank()) {
                 dataStoreManager.toggleFavourite(email, filename)
             }
-        }
-    }
-
-    class Factory(
-        private val dataStoreManager: DataStoreManager
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return BookmarkViewModel(dataStoreManager) as T
         }
     }
 }

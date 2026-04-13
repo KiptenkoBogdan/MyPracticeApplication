@@ -3,8 +3,9 @@ package com.example.mypracticeapplication.viewmodel
 import com.example.mypracticeapplication.model.VideoItem
 import com.example.mypracticeapplication.utils.DataStoreManager
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +26,8 @@ data class SavedVideoPlayerUiState(
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SavedVideoPlayerViewModel(
+@HiltViewModel
+class SavedVideoPlayerViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager
 ) : ViewModel() {
 
@@ -104,14 +106,5 @@ class SavedVideoPlayerViewModel(
     private fun extractCreatorName(filename: String): String {
         val name = filename.substringBefore("_vid").substringBefore("_")
         return name.replaceFirstChar { it.uppercase() }
-    }
-
-    class Factory(
-        private val dataStoreManager: DataStoreManager
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return SavedVideoPlayerViewModel(dataStoreManager) as T
-        }
     }
 }

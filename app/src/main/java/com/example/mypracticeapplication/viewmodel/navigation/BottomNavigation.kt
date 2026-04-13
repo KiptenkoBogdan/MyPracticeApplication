@@ -15,15 +15,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import android.net.Uri
-import com.example.mypracticeapplication.utils.DataStoreManager
 import com.example.mypracticeapplication.view.BookmarkScreen
 import com.example.mypracticeapplication.view.HomeScreen
 import com.example.mypracticeapplication.view.LoginScreen
@@ -34,12 +32,13 @@ import com.example.mypracticeapplication.view.BottomNavBar
 import com.example.mypracticeapplication.view.BottomNavItem
 import com.example.mypracticeapplication.viewmodel.BookmarkViewModel
 import com.example.mypracticeapplication.viewmodel.HomeViewModel
+import com.example.mypracticeapplication.viewmodel.NavigationViewModel
 import com.example.mypracticeapplication.viewmodel.ProfileViewModel
 import com.example.mypracticeapplication.viewmodel.SavedVideoPlayerViewModel
 
 @Composable
-fun BottomNavigator(dataStoreManager: DataStoreManager) {
-    val context = LocalContext.current.applicationContext
+fun BottomNavigator() {
+    val navigationViewModel: NavigationViewModel = hiltViewModel()
     val bottomNavigationItems = remember {
         listOf(
             BottomNavItem(icon = Icons.Outlined.Home, text = "Home"),
@@ -49,7 +48,7 @@ fun BottomNavigator(dataStoreManager: DataStoreManager) {
     }
     val navController = rememberNavController()
     val backStackState = navController.currentBackStackEntryAsState().value
-    val isLoggedIn by dataStoreManager.isLoggedIn().collectAsState(initial = false)
+    val isLoggedIn by navigationViewModel.isLoggedIn.collectAsState()
 
     var selectedItem by rememberSaveable { mutableStateOf(0) }
     selectedItem = when (backStackState?.destination?.route) {
@@ -100,15 +99,11 @@ fun BottomNavigator(dataStoreManager: DataStoreManager) {
             modifier = Modifier.padding(bottom = bottomPadding)
         ) {
             composable(route = Route.HomeScreen.route) {
-                val homeViewModel: HomeViewModel = viewModel(
-                    factory = HomeViewModel.Factory(dataStoreManager, context)
-                )
+                val homeViewModel: HomeViewModel = hiltViewModel()
                 HomeScreen(viewModel = homeViewModel)
             }
             composable(route = Route.BookmarkScreen.route) {
-                val bookmarkViewModel: BookmarkViewModel = viewModel(
-                    factory = BookmarkViewModel.Factory(dataStoreManager)
-                )
+                val bookmarkViewModel: BookmarkViewModel = hiltViewModel()
                 BookmarkScreen(
                     viewModel = bookmarkViewModel,
                     onVideoClick = { filename ->
@@ -126,9 +121,7 @@ fun BottomNavigator(dataStoreManager: DataStoreManager) {
                     navController.popBackStack()
                     return@composable
                 }
-                val savedVideoPlayerViewModel: SavedVideoPlayerViewModel = viewModel(
-                    factory = SavedVideoPlayerViewModel.Factory(dataStoreManager)
-                )
+                val savedVideoPlayerViewModel: SavedVideoPlayerViewModel = hiltViewModel()
                 SavedVideoPlayerScreen(
                     startingFilename = filename,
                     viewModel = savedVideoPlayerViewModel,
@@ -141,14 +134,11 @@ fun BottomNavigator(dataStoreManager: DataStoreManager) {
                         navController.navigate(Route.HomeScreen.route) {
                             popUpTo(Route.LoginScreen.route) { inclusive = true }
                         }
-                    },
-                    dataStoreManager = dataStoreManager
+                    }
                 )
             }
             composable(route = Route.ProfileScreen.route) {
-                val profileViewModel: ProfileViewModel = viewModel(
-                    factory = ProfileViewModel.Factory(dataStoreManager)
-                )
+                val profileViewModel: ProfileViewModel = hiltViewModel()
                 ProfileScreen(
                     onLogout = {
                         navController.navigate(Route.LoginScreen.route) {

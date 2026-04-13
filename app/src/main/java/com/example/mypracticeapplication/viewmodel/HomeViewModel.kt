@@ -4,8 +4,10 @@ import android.content.Context
 import com.example.mypracticeapplication.model.VideoItem
 import com.example.mypracticeapplication.utils.DataStoreManager
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -27,9 +29,10 @@ data class HomeUiState(
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class HomeViewModel(
+@HiltViewModel
+class HomeViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager,
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -128,15 +131,5 @@ class HomeViewModel(
     private fun extractCreatorName(filename: String): String {
         val name = filename.substringBefore("_vid").substringBefore("_")
         return name.replaceFirstChar { it.uppercase() }
-    }
-
-    class Factory(
-        private val dataStoreManager: DataStoreManager,
-        private val context: Context
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return HomeViewModel(dataStoreManager, context) as T
-        }
     }
 }

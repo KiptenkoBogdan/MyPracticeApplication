@@ -7,16 +7,10 @@ import coil3.SingletonImageLoader
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
 import coil3.video.VideoFrameDecoder
-import com.example.mypracticeapplication.utils.DataStoreManager
+import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 class MyApp : Application(), SingletonImageLoader.Factory {
-    lateinit var dataStoreManager: DataStoreManager
-        private set
-
-    override fun onCreate() {
-        super.onCreate()
-        dataStoreManager = DataStoreManager(this)
-    }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader =
         ImageLoader.Builder(context)

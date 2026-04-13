@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -71,6 +73,11 @@ dependencies {
 
     // ViewModel Compose integration
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+
+    // Hilt dependency injection
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     //Google splashscreen
     implementation("androidx.core:core-splashscreen:1.0.1")

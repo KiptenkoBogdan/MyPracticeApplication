@@ -36,8 +36,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -52,12 +52,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mypracticeapplication.model.UserDetails
-import com.example.mypracticeapplication.utils.DataStoreManager
-import kotlinx.coroutines.launch
+import com.example.mypracticeapplication.viewmodel.LoginViewModel
 
 @Composable
-fun LoginScreen(onLoginClicked: (String, String) -> Unit, dataStoreManager: DataStoreManager) {
+fun LoginScreen(
+    onLoginClicked: (String, String) -> Unit,
+    viewModel: LoginViewModel = hiltViewModel()
+) {
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -67,7 +68,6 @@ fun LoginScreen(onLoginClicked: (String, String) -> Unit, dataStoreManager: Data
     var isLoading by remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
-    val scope = rememberCoroutineScope()
 
     fun validateAndLogin() {
         var valid = true
@@ -82,13 +82,7 @@ fun LoginScreen(onLoginClicked: (String, String) -> Unit, dataStoreManager: Data
         }
         if (valid) {
             isLoading = true
-            scope.launch {
-                dataStoreManager.saveToDataStore(
-                    UserDetails(
-                        email = email,
-                        password = password
-                    )
-                )
+            viewModel.login(email, password) {
                 onLoginClicked(email, password)
             }
         }
