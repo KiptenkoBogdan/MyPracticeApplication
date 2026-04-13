@@ -35,7 +35,6 @@ class ProfileViewModel @Inject constructor(
                     email = user.email,
                     displayName = user.displayName,
                     profilePictureUri = user.profilePictureUri,
-                    //isLoggedIn = user.email.isNotBlank()
                 )
             }
         }

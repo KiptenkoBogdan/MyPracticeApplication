@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,13 +23,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.example.mypracticeapplication.viewmodel.ProfileViewModel
+import androidx.core.net.toUri
 
 @Composable
 fun ProfileScreen(
@@ -55,7 +60,8 @@ fun ProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    var editingName by remember(uiState.displayName) { mutableStateOf(uiState.displayName) }
+    val displayedName = uiState.displayName.ifBlank { "User" }
+    var showEditDialog by remember { mutableStateOf(false) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -98,7 +104,7 @@ fun ProfileScreen(
         ) {
             if (uiState.profilePictureUri.isNotBlank()) {
                 AsyncImage(
-                    model = Uri.parse(uiState.profilePictureUri),
+                    model = uiState.profilePictureUri.toUri(),
                     contentDescription = "Profile picture",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -132,37 +138,26 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Display name field
-        OutlinedTextField(
-            value = editingName,
-            onValueChange = { editingName = it },
-            label = { Text("Display Name") },
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
-                focusedLabelColor = MaterialTheme.colorScheme.primary,
-                unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
-                cursorColor = Color.White
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Save name button
-        if (editingName != uiState.displayName) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = { viewModel.updateDisplayName(editingName) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("Save Name")
+        // Username display + edit pencil
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = displayedName,
+                color = Color.White,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+            IconButton(onClick = { showEditDialog = true }) {
+                Icon(
+                    imageVector = Icons.Filled.Edit,
+                    contentDescription = "Edit username",
+                    tint = Color.White.copy(alpha = 0.7f)
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Email (read-only)
         Text(
@@ -192,5 +187,44 @@ fun ProfileScreen(
                 fontWeight = FontWeight.Bold
             )
         }
+    }
+
+    if (showEditDialog) {
+        var editingName by remember(showEditDialog) { mutableStateOf(displayedName) }
+        val trimmed = editingName.trim()
+        val canSave = trimmed.isNotBlank() && trimmed != uiState.displayName
+
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = { Text("Edit username") },
+            text = {
+                OutlinedTextField(
+                    value = editingName,
+                    onValueChange = { editingName = it },
+                    label = { Text("Username") },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.updateDisplayName(trimmed)
+                        showEditDialog = false
+                    },
+                    enabled = canSave
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

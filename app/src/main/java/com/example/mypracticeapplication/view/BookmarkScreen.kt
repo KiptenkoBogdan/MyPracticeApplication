@@ -48,10 +48,10 @@ fun BookmarkScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF1A1A2E))
-            .padding(top = 16.dp)
+            .padding(top = 48.dp)
     ) {
         Text(
-            text = "Saved Videos",
+            text = "${uiState.displayName.ifBlank { "User" }}'s saved videos",
             color = Color.White,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
@@ -60,7 +60,7 @@ fun BookmarkScreen(
 
         if (uiState.favouriteVideos.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -89,7 +89,7 @@ fun BookmarkScreen(
                 columns = GridCells.Fixed(3),
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
