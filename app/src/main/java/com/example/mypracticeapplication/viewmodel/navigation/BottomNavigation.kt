@@ -27,6 +27,7 @@ import com.example.mypracticeapplication.view.HomeScreen
 import com.example.mypracticeapplication.view.LoginScreen
 import com.example.mypracticeapplication.view.ProfileScreen
 import com.example.mypracticeapplication.view.SavedVideoPlayerScreen
+import com.example.mypracticeapplication.view.SignUpScreen
 import com.example.mypracticeapplication.model.Route
 import com.example.mypracticeapplication.view.BottomNavBar
 import com.example.mypracticeapplication.view.BottomNavItem
@@ -56,6 +57,7 @@ fun BottomNavigator() {
         Route.BookmarkScreen.route -> 1
         Route.ProfileScreen.route -> 2
         Route.LoginScreen.route -> 2
+        Route.SignUpScreen.route -> 2
         else -> 0
     }
 
@@ -63,7 +65,8 @@ fun BottomNavigator() {
         backStackState?.destination?.route == Route.HomeScreen.route ||
                 backStackState?.destination?.route == Route.BookmarkScreen.route ||
                 backStackState?.destination?.route == Route.ProfileScreen.route ||
-                backStackState?.destination?.route == Route.LoginScreen.route
+                backStackState?.destination?.route == Route.LoginScreen.route ||
+                backStackState?.destination?.route == Route.SignUpScreen.route
     }
 
     Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
@@ -133,6 +136,23 @@ fun BottomNavigator() {
                     onLoginClicked = { _, _ ->
                         navController.navigate(Route.HomeScreen.route) {
                             popUpTo(Route.LoginScreen.route) { inclusive = true }
+                        }
+                    },
+                    onSignUpClicked = {
+                        navController.navigate(Route.SignUpScreen.route)
+                    }
+                )
+            }
+            composable(route = Route.SignUpScreen.route) {
+                SignUpScreen(
+                    onSignUpSuccess = {
+                        navController.navigate(Route.LoginScreen.route) {
+                            popUpTo(Route.SignUpScreen.route) { inclusive = true }
+                        }
+                    },
+                    onBackToLogin = {
+                        navController.navigate(Route.LoginScreen.route) {
+                            popUpTo(Route.SignUpScreen.route) { inclusive = true }
                         }
                     }
                 )

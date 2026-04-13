@@ -43,12 +43,20 @@ class ProfileViewModel @Inject constructor(
     fun updateDisplayName(name: String) {
         viewModelScope.launch {
             dataStoreManager.saveDisplayName(name)
+            val email = _uiState.value.email
+            if (email.isNotBlank()) {
+                dataStoreManager.updateAccount(email) { it.copy(displayName = name) }
+            }
         }
     }
 
     fun updateProfilePicture(uri: String) {
         viewModelScope.launch {
             dataStoreManager.saveProfilePictureUri(uri)
+            val email = _uiState.value.email
+            if (email.isNotBlank()) {
+                dataStoreManager.updateAccount(email) { it.copy(profilePictureUri = uri) }
+            }
         }
     }
 

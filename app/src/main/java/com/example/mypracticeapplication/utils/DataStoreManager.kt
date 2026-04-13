@@ -9,6 +9,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.example.mypracticeapplication.model.UserDetails
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
@@ -25,6 +26,7 @@ class DataStoreManager(val context: Context) {
         val DISPLAY_NAME = stringPreferencesKey("DISPLAY_NAME")
         val PROFILE_PICTURE_URI = stringPreferencesKey("PROFILE_PICTURE_URI")
         val LIKE_COUNTS = stringPreferencesKey("LIKE_COUNTS")
+        val ACCOUNTS = stringPreferencesKey("ACCOUNTS")
 
         fun favouritesKey(email: String) = stringPreferencesKey("FAVOURITES_$email")
         fun userLikesKey(email: String) = stringPreferencesKey("USER_LIKES_$email")
@@ -36,6 +38,63 @@ class DataStoreManager(val context: Context) {
         context.preferenceDataStore.edit {
             it[EMAIL] = userDetails.email
             it[PASSWORD] = userDetails.password
+            it[DISPLAY_NAME] = userDetails.displayName
+            it[PROFILE_PICTURE_URI] = userDetails.profilePictureUri
+        }
+    }
+
+    // --- Accounts (multi-user registry) ---
+
+    fun getAccounts(): Flow<List<UserDetails>> =
+        context.preferenceDataStore.data
+            .map { it[ACCOUNTS] ?: "[]" }
+            .distinctUntilChanged()
+            .map { json ->
+                try {
+                    Json.decodeFromString<List<UserDetails>>(json)
+                } catch (e: Exception) {
+                    emptyList()
+                }
+            }
+
+    suspend fun findAccount(email: String): UserDetails? {
+        val prefs = context.preferenceDataStore.data.first()
+        val list = try {
+            Json.decodeFromString<List<UserDetails>>(prefs[ACCOUNTS] ?: "[]")
+        } catch (e: Exception) {
+            emptyList()
+        }
+        return list.firstOrNull { it.email.equals(email, ignoreCase = true) }
+    }
+
+    suspend fun registerAccount(newUser: UserDetails): Boolean {
+        var success = true
+        context.preferenceDataStore.edit { prefs ->
+            val current = try {
+                Json.decodeFromString<List<UserDetails>>(prefs[ACCOUNTS] ?: "[]")
+            } catch (e: Exception) {
+                emptyList()
+            }
+            if (current.any { it.email.equals(newUser.email, ignoreCase = true) }) {
+                success = false
+                return@edit
+            }
+            prefs[ACCOUNTS] = Json.encodeToString(current + newUser)
+        }
+        return success
+    }
+
+    suspend fun updateAccount(email: String, transform: (UserDetails) -> UserDetails) {
+        context.preferenceDataStore.edit { prefs ->
+            val current = try {
+                Json.decodeFromString<List<UserDetails>>(prefs[ACCOUNTS] ?: "[]")
+            } catch (e: Exception) {
+                return@edit
+            }
+            val updated = current.map {
+                if (it.email.equals(email, ignoreCase = true)) transform(it) else it
+            }
+            prefs[ACCOUNTS] = Json.encodeToString(updated)
         }
     }
 

@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -52,17 +53,19 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mypracticeapplication.viewmodel.LoginViewModel
+import com.example.mypracticeapplication.viewmodel.SignUpViewModel
 
 @Composable
-fun LoginScreen(
-    onLoginClicked: (String, String) -> Unit,
-    onSignUpClicked: () -> Unit,
-    viewModel: LoginViewModel = hiltViewModel()
+fun SignUpScreen(
+    onSignUpSuccess: () -> Unit,
+    onBackToLogin: () -> Unit,
+    viewModel: SignUpViewModel = hiltViewModel()
 ) {
 
+    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var usernameError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
     var isPasswordVisible by remember { mutableStateOf(false) }
@@ -70,11 +73,18 @@ fun LoginScreen(
 
     val focusManager = LocalFocusManager.current
 
-    fun validateAndLogin() {
+    fun validateAndSignUp() {
         var valid = true
 
+        if (username.isBlank()) {
+            usernameError = "Username is required"
+            valid = false
+        }
         if (email.isBlank()) {
             emailError = "Email is required"
+            valid = false
+        } else if (!email.contains("@")) {
+            emailError = "Enter a valid email"
             valid = false
         }
         if (password.isBlank()) {
@@ -83,16 +93,17 @@ fun LoginScreen(
         }
         if (valid) {
             isLoading = true
-            viewModel.login(
-                email = email,
+            viewModel.signUp(
+                username = username.trim(),
+                email = email.trim(),
                 password = password,
                 onSuccess = {
                     isLoading = false
-                    onLoginClicked(email, password)
+                    onSignUpSuccess()
                 },
                 onError = { message ->
                     isLoading = false
-                    passwordError = message
+                    emailError = message
                 }
             )
         }
@@ -118,7 +129,7 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Login or sign up",
+                text = "Create account",
                 color = Color.White,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
@@ -126,7 +137,7 @@ fun LoginScreen(
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Login in your existing account or sign up to create a new account",
+                text = "Sign up with a username, email and password to start saving videos",
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center
@@ -146,6 +157,41 @@ fun LoginScreen(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = {
+                            username = it
+                            usernameError = null
+                        },
+                        placeholder = { Text(text = "your_username") },
+                        supportingText = {
+                            AnimatedVisibility(visible = usernameError != null) {
+                                Text(
+                                    text = usernameError ?: "",
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        },
+                        isError = usernameError != null,
+                        label = { Text(text = "Username") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp)
+                    )
                     OutlinedTextField(
                         value = email,
                         onValueChange = {
@@ -222,7 +268,7 @@ fun LoginScreen(
                         keyboardActions = KeyboardActions(
                             onDone = {
                                 focusManager.clearFocus()
-                                validateAndLogin()
+                                validateAndSignUp()
                             }
                         ),
                         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -231,7 +277,7 @@ fun LoginScreen(
                             .padding(bottom = 16.dp)
                     )
                     Button(
-                        onClick = { validateAndLogin() },
+                        onClick = { validateAndSignUp() },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = !isLoading
                     ) {
@@ -242,7 +288,7 @@ fun LoginScreen(
                             )
                         } else {
                             Text(
-                                text = "Login",
+                                text = "Sign Up",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -252,13 +298,13 @@ fun LoginScreen(
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Don't have an account?",
+                    text = "Already have an account?",
                     fontSize = 14.sp,
                     color = Color.White
                 )
-                TextButton(onClick = onSignUpClicked) {
+                TextButton(onClick = onBackToLogin) {
                     Text(
-                        text = "Sign Up",
+                        text = "Log In",
                         fontSize = 14.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
